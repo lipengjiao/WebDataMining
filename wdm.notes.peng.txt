@@ -1,0 +1,16 @@
+# web data mining, progress report draft, 
+# command lines;
+# 
+
+# part I,  install tweepy on OSX
+sudo easy_install-2.7 tweepy
+
+
+
+# 
+mkdir workplace
+cd workplace
+
+#remove duplicate lines
+sort Ebola.txt | uniq -u > Ebola.uniq.txt
+
