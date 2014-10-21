@@ -7,8 +7,8 @@ Author: Darian Pazgan-Lorenzo
 This is a corpus pre-processing script to do some cleanup on twitter data.
 The primary goal is to remove URLs and emoticons from tweets. Currently the URL removal is pretty solid, will be implementing emoticon removal soon.
 
-Usage: python cleanInput.py <infile> > <outfile>
-Example: python cleanInput.py input.txt > output.txt
+Usage: python cleanInput.py > <outfile>
+Example: python cleanInput.py > output.txt
 
 '''
 
