@@ -62,8 +62,8 @@ for tweet_json in tweepy.Cursor(api.search,
     if tweet_json.id not in seen: # check duplicates
         seen.add(tweet_json.id) 
         tweet_txt = tweet_json.text.encode('utf8')
-        tweet_txt = tweet_txt.replace("\t", "\s") # replace tab with space
-        tweet_txt = tweet_txt.replace("\n", "\s") # replace newline with space
+        tweet_txt = tweet_txt.replace('\t', ' ') # replace tab with space
+        tweet_txt = tweet_txt.replace('\n', ' ') # replace newline with space
         print tweet_txt
 
         if flag_include_retweets == "Y":
