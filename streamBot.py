@@ -9,6 +9,8 @@ access_token_secret = 'awm4dQNrJwwDMifsN4Mdk0WrKTdJf6LFwkpPZsVi1wUaT'
 
 #this is the file to be written 
 fo = open('Halloween.txt','a')
+
+fill = ""
 # This is the listener, resposible for receiving data
 class StdOutListener(tweepy.StreamListener):
     def on_data(self, data):

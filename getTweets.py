@@ -34,6 +34,7 @@ import tweepy
 import time
 import json
 import sys
+import re
 # Authentication details. To  obtain these visit dev.twitter.com
 consumer_key = 'wDYCX7S5rkynzu80cBDQBfsbW'
 consumer_secret = 'tq0vk9NV36kSAQQmQaLSy2si9Pp6rvZWYV4z2NMs1oifRdIqov'
@@ -64,6 +65,7 @@ for tweet_json in tweepy.Cursor(api.search,
         tweet_txt = tweet_json.text.encode('utf8')
         tweet_txt = tweet_txt.replace('\t', ' ') # replace tab with space
         tweet_txt = tweet_txt.replace('\n', ' ') # replace newline with space
+        tweet_txt = ' '.join(re.sub("(@[A-Za-z0-9]+)|(\w+:\/\/\S+)"," ",tweet_txt).split())
         print tweet_txt
 
         if flag_include_retweets == "Y":
@@ -75,6 +77,7 @@ for tweet_json in tweepy.Cursor(api.search,
                     retweet = retweet.text.encode('utf8')
                     retweet = retweet.replace("\t", "\s") # replace tab with space
                     retweet = retweet.replace("\n", "\s") # replace newline with space
+                    retweet = ' '.join(re.sub("(@[A-Za-z0-9]+)|(\w+:\/\/\S+)"," ",retweet).split())
                     print retweet;   
                
             print
