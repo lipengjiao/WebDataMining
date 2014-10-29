@@ -29,24 +29,31 @@ def cleanTweet(x):
     # remove url, punctuation, \t, \n
     x = ' '.join(re.sub("([^0-9A-Za-z \t])|(\w+:\/\/\S+)|[\n \t]"," ",x).split())
     #x = re.sub(r'(\w+:\/\/\S+)|(\n)|(\s)|[{}]', ' ', x)
-    return "\""+ x + "\""
+    return x
 
-
+# The recursive function to bulid a tree of tweets, root is the topic, and all the chidren are replies. 
 def get_Tree(id): 
     tweet = api.get_status(id)
     user = '@' + tweet.user.screen_name
     dt = str(tweet.created_at).split()[0];
 
-    for reply in tweepy.Cursor(api.search, q=user, count = 100, since_id = id, include_entities= True).items():
+    for reply in tweepy.Cursor(api.search, q=user, 
+        count = 100, 
+        since_id = id, # specifying the since_id will speed up the searching speed.
+        include_entities= True).items():
         if reply.in_reply_to_status_id == id:
             print '{'
-            print reply.text
-            get_Tree(reply.id)
+            print cleanTweet(reply.text)
+            id2 = reply.id
+            del reply
+            get_Tree(id2)
             print '}'
+        else:
+            del reply
                             
 
-#tweet_id = int(sys.argv[1])
-tweet_id = 526572433948819456
+tweet_id = int(sys.argv[1])
+#tweet_id = 526572433948819456
 myTweet = api.get_status(tweet_id)
 
 

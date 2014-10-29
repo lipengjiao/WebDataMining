@@ -1,23 +1,18 @@
 #install required libraries;
 install.packages("tm", lib="http://cran.r-project.org/web/packages/tm/");
-
-#install.packages("class", lib ="http://cran.r-project.org/web/packages/class/index.html");
 install.packages("cluster", lib="http://cran.r-project.org/web/packages/cluster/index.html");
 install.packages("plyr", lib ="http://cran.r-project.org/web/packages/plyr/index.html");
 install.packages("SnowballC", lib ="http://cran.r-project.org/web/packages/SnowballC/index.html");
-install.packages("fpc", lib = "http://cran.r-project.org/web/packages/fpc/index.html");
-libs<- c("tm", "plyr", "cluster", "SnowballC", "fpc");
+
+libs<- c("tm", "plyr", "cluster", "SnowballC");
 lapply(libs, require, character.only= TRUE);
 
 #read txt files'
-file <-file("/Users/pengli/Desktop/workplace/WebDataMining/Data/Ebola.uniq.txt",open="r");
+file <-file("/Users/pengli/Desktop/workplace/WebDataMining/Data/TS1989.no.braces.txt",open="r");
 tweets <- readLines(file);
-file2 <-file("/Users/pengli/Desktop/workplace/WebDataMining/Data/Halloween.uniq.txt",open="r");
-tweet2 <- readLines(file2);
 close(file)
-close(file2)
 
-corpus  <-Corpus(VectorSource(c(tweets, tweet2)), readerControl = list(blank.lines.skip=TRUE));
+corpus  <-Corpus(VectorSource(tweets), readerControl = list(blank.lines.skip=TRUE));
 #some preprocessing
 corpus <- tm_map(corpus, stemDocument)
 corpus <- tm_map(corpus, removeWords, c(stopwords("smart"), "amp"))
@@ -36,16 +31,13 @@ dtm <-DocumentTermMatrix(corpus,control = list(weighting = function(x)
 # remove sparse terms < 1%
 dtm2 <- removeSparseTerms(dtm, sparse=0.99)
 
-write.csv(inspect(dtm2), file = "/Users/pengli/Desktop/workplace/WebDataMining/Data/TF_IDF.csv")
+doc_m<-as.matrix(inspect(dtm))
+doc_dm<-dist(scale(doc_m),method="euclidean")
 
-tdm<-as.TermDocumentMatrix(dtm2)
 
-term_m<-as.matrix(inspect(tdm))
+#write.csv(inspect(dtm2), file = "/Users/pengli/Desktop/workplace/WebDataMining/Data/TS1989.csv")
 
-#calculate the distance_matrix of term frequencies
-term_dm<-dist(scale(term_m),method="euclidean")
-
-fit = hclust(term_dm, method="ward.D")
+fit = hclust(doc_dm, method="ward.D")
 
 plot(fit, xlab= "term frequencies", ylab="Height")
 
@@ -61,10 +53,7 @@ for (i in 2:15) wss[i] <- sum(kmeans(dtm,
 plot(1:15, wss, type="b", xlab="Number of Clusters",
      ylab="Within groups sum of squares")
 
-kmeans_result <-kmeans(x=dtm2, centers=2, iter.max=40,nstart=10)
+dtm_clu <-kmeans(x=dtm, centers=2, iter.max=40,nstart=10)
 
-kmeans_center<-round(kmeans_result$centers, digits=3)
-write.csv(kmeans_center, file = "/Users/pengli/Desktop/workplace/WebDataMining/Data/cluster_center.csv")
-plotcluster(dtm2, kmeans_result)
 
 
