@@ -7,7 +7,7 @@ Requirement:
     2. Only tested on Mac OSX, it may not be working on Windows
 
 Usage: python getTweets.py <query> <size> <include retweets or not>
-Example: python getTweets.py "Ebola" 1000 Y > Ebola.txt
+Example: python getTweets.py "Ebola" 1000 > Ebola.txt
 
 Output: 
   Each line will be the tweet's relative link and the tweet's text seperated by \t
@@ -54,7 +54,7 @@ for tweet_json in tweepy.Cursor(api.search,
       tweet_txt = tweet_json.text.encode('utf8')
       tweet_txt = tweet_txt.replace('\t', ' ') # replace tab with space
       tweet_txt = tweet_txt.replace('\n', ' ') # replace newline with space
-      tweet_txt = ' '.join(re.sub("(\w+:\/\/\S+)"," ",tweet_txt).split())
+      #tweet_txt = ' '.join(re.sub("(\w+:\/\/\S+)"," ",tweet_txt).split())
       #print str(tweet_json.id)+'\t'+'@' + tweet_json.user.screen_name +'\t'+tweet_txt
       print '/'+ tweet_json.user.screen_name + '/status/' + str(tweet_json.id) + '\t' + tweet_txt 
       count = count + 1
