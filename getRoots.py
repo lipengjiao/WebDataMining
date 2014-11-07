@@ -50,12 +50,12 @@ for tweet_json in tweepy.Cursor(api.search,
                        lang="en").items():
     if count > size:
       break
-    if not hasattr(tweet_json, 'retweeted_status') and (tweet_json.in_reply_to_status_id is None): #filter out the tweets that is reply or retweet
-      tweet_txt = tweet_json.text.encode('utf8')
+    if not hasattr(tweet_json, 'retweeted_status') and (tweet_json.in_reply_to_status_id is None): #filter out the tweets that is reply or retweet     
       tweet_txt = tweet_txt.replace('\t', ' ') # replace tab with space
       tweet_txt = tweet_txt.replace('\n', ' ') # replace newline with space
-      #tweet_txt = ' '.join(re.sub("(\w+:\/\/\S+)"," ",tweet_txt).split())
+      tweet_txt = ' '.join(re.sub("(\w+:\/\/\S+)"," ",tweet_txt).split())
       #print str(tweet_json.id)+'\t'+'@' + tweet_json.user.screen_name +'\t'+tweet_txt
+      tweet_txt = tweet_json.text.encode('utf8')
       print '/'+ tweet_json.user.screen_name + '/status/' + str(tweet_json.id) + '\t' + tweet_txt 
       count = count + 1
 
