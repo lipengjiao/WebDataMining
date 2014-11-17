@@ -5,6 +5,10 @@ Author: Darian Pazgan-Lorenzo
 Given a dataset of tweets, assign a sentiment value to each one based on its body text.
 The sentiment analysis is currently drawn from the TextBlob python
 library. The next step is to try a custom classifier with training data. 
+
+Example usage: 
+$python analyzeSentiment.py inputfile.txt > sentimentlabels.txt
+
 '''
 
 import sys
