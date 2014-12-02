@@ -25,19 +25,26 @@ def main():
     
     input_file = open(str(sys.argv[1]))
 
+    #list of sentiments
+    #sent = []
+
     for line in input_file:
+
+        #keep original line
+        orig = line
+        #strip newline artifacts
+        orig = orig.replace("\n", "")
+
         #initialize a TextBlob from the tweet text
         #encode the input line (for Darian's computer this must be done)
         line = unicode(line, 'utf-8')
-        #get rid of the tweet username and id for sentiment analysis 
+        #extract tweet text for sentiment analysis 
         tweet = line.split()[1:]
         line = " ".join(tweet)
         line_blob = TextBlob(line)
         sentiment = str(line_blob.sentiment.polarity)
-        #print the sentiment polarity
-        print line_blob
-        print "Sentiment: " + sentiment
-    
-    
+        #print the original line with the sentiment attached to the end
+        if (line.strip() != ""):
+            print orig + "\t" + sentiment
 
 main()
