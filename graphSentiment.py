@@ -46,6 +46,33 @@ def getMetrics(input_filename):
 
     return (total_similarity/len(similarities), total_sentiment/len(sentiments))
 
+def getMetricsBinary(input_filename):
+    similarities = []
+    sentiments = []
+    input_file = open(input_filename)
+
+    for line in input_file:
+        #get the similarity and sentiment
+        #encode text
+        line = unicode(line, 'utf-8')
+        similarity = float(line.split()[-2])
+        sentiment = line.split()[-1]
+        similarities.extend([similarity])
+        sentiments.extend([sentiment])
+
+    total_similarity = 0
+    total_sentiment = 0
+    for similar in similarities:
+        total_similarity += similar
+    for sent in sentiments:
+        if sent == "pos":
+            total_sentiment += float(1)
+        else:
+            total_sentiment -= float(1)
+
+    return (total_similarity/len(similarities), total_sentiment/len(sentiments))
+    
+
 def main():
     #get number of args (first one is script name itself)
     n = len(sys.argv) - 1
@@ -53,7 +80,7 @@ def main():
     similarity_means = []
     sentiment_means = []
     for i in range(1, n+1):
-        averages = getMetrics(sys.argv[i])
+        averages = getMetricsBinary(sys.argv[i])
         similarity_means.extend([averages[0]])
         sentiment_means.extend([averages[1]])
     
