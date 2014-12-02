@@ -3,13 +3,13 @@
 Author: Darian Pazgan-Lorenzo
 
 Generates a graph based on tweet data by reply level, topic similarity, and
-estimated sentiment polarity. The input file should be a list of tweets with
+estimated sentiment polarity. The input files should be a list of tweets with
 similarity and sentiment appended.
 
 This script uses the Matplotlib graphing library for python:
 http://www.matplotlib.org
 
-Usage: python graphSentiment.py <input_file> 
+Usage: python graphSentiment.py <input_file_1>... 
 
 '''
 
@@ -17,9 +17,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import sys
-
-#right now we collected tweets down to 3 levels deep
-levels = 3
 
 #collect array of similarities and sentiment for each reply level; average them
 #returns 2-tuple: first value is average similarity, second is average sentiment
@@ -80,7 +77,10 @@ def main():
     similarity_means = []
     sentiment_means = []
     for i in range(1, n+1):
-        averages = getMetricsBinary(sys.argv[i])
+        if "bayes" in sys.argv[i]:
+            averages = getMetricsBinary(sys.argv[i])
+        else:
+            averages = getMetrics(sys.argv[i])
         similarity_means.extend([averages[0]])
         sentiment_means.extend([averages[1]])
     
@@ -93,8 +93,16 @@ def main():
     rects2 = ax.bar(ind+width, sentiment_means, width, color='g')
 
     #add label text
-    ax.set_ylabel('similarity/polarity')
+    ax.set_title('Similarity and Sentiment by Reply Level')
+    plt.ylim([-0.15,0.15])
+    ax.set_ylabel('Similarity/Polarity')
+    ax.set_xlabel('Reply Level')
     ax.set_xticks(ind+width)
+    #make labels for ticks
+    ticklabels = []
+    for i in range(1, n+1):
+        ticklabels.extend([str(i)])
+    ax.set_xticklabels(ticklabels)
 
     ax.legend( (rects1[0], rects2[0]), ('Similarity','Sentiment Polarity') )
 
