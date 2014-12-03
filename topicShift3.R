@@ -1,0 +1,160 @@
+#install required libraries, 
+#uncomment these line for the first time to run this script
+#install.packages("tm", lib="http://cran.r-project.org/web/packages/tm/");
+#install.packages("cluster", lib="http://cran.r-project.org/web/packages/cluster/index.html");
+#install.packages("plyr", lib ="http://cran.r-project.org/web/packages/plyr/index.html");
+#install.packages("SnowballC", lib ="http://cran.r-project.org/web/packages/SnowballC/index.html");
+#install.packages("fpc", lib = "http://cran.r-project.org/web/packages/fpc/index.html");
+#install.packages("proxy", lib = "http://cran.r-project.org/web/packages/proxy/index.html")
+
+libs<- c("tm", "plyr", "cluster", "SnowballC", "fpc", "proxy", "Matrix");
+lapply(libs, require, character.only= TRUE);
+
+# function to clean text
+cleanText <- function(x) {
+  # replace at people with UserID
+  x = gsub("@\\w+", "", x);
+  # remove html links
+  x = gsub("(\\w+:\\/\\/\\S+)", "", x);
+  return (x);
+}
+
+
+# read reply files
+
+replies1_raw<-read.table(file= "/Users/pengli/Desktop/workplace/WebDataMining/Data/ts1989/trees.leve1.txt", sep="\t", header=F, quote = "");
+replies2_raw<-read.table(file= "/Users/pengli/Desktop/workplace/WebDataMining/Data/ts1989/trees.leve2.txt", sep="\t", header=F, quote = "");
+replies3_raw<-read.table(file= "/Users/pengli/Desktop/workplace/WebDataMining/Data/ts1989/trees.leve3.txt", sep="\t", header=F, quote = "");
+
+ln1 = nrow(replies1_raw);
+ln2 = nrow(replies2_raw);
+ln3 = nrow(replies3_raw);
+
+reply1<-cleanText(replies1_raw[,2])
+reply2<-cleanText(replies2_raw[,2])
+reply3<-cleanText(replies3_raw[,2])
+
+# read topic files:
+topic<-read.table(file= "/Users/pengli/Desktop/workplace/WebDataMining/Data/ts1989/ts1989.txt", sep="\t", header=F, quote = "");
+topic<-cleanText(topic[,2])
+
+topicString<-paste(topic, collapse=" ")
+
+
+
+corpus<-Corpus(VectorSource(c(topicString, reply1, reply2, reply3)))
+corpus <- tm_map(corpus, removeWords, stopwords("smart"))
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, stripWhitespace)
+corpus <- tm_map(corpus, stemDocument)
+
+#creating term matrix with TF-IDF weighting
+dtm <-DocumentTermMatrix(corpus,control = list(weighting = function(x)
+  weightTfIdf(x), stopwords = TRUE))
+
+#compute modified jaccard coefficient:
+topic<-strsplit(as.character(corpus$content[[1]]), " ")[[1]]
+mjaccard=rep(0, length(corpus))
+for (i in 1: (length(corpus))){
+  reply<-strsplit(as.character(corpus$content[[i]]), " ")[[1]];
+  if (length(reply) == 0) {mjaccard[i] = 0;}
+  else 
+  {mjaccard[i] = length(intersect(topic, reply))/length(unique(reply)); }
+}
+
+
+# remove sparse terms < 1%
+# dtm2 <- removeSparseTerms(dtm, sparse=0.99)
+
+#compute jaccard similarity matrix
+simJacard<-simil(as.matrix(dtm), method="Jaccard", pairwise = TRUE)
+#compute the cosine similarity matrix
+simCos<-simil(as.matrix(dtm), method = "cosine", pairwise = TRUE)
+
+jacard<-as.matrix(simJacard)[,1]
+cos<-as.matrix(simCos)[,1]
+
+reply1_jacard<-mjaccard[2:(2+ln1-1)]
+reply2_jacard<-mjaccard[(2+ln1):(2+ln1+ln2-1)]
+reply3_jacard<-mjaccard[(2+ln1+ln2):(2+ln1+ln2+ln3-1)]
+
+reply1_cos<-cos[2:(2+ln1-1)]
+reply2_cos<-cos[(2+ln1):(2+ln1+ln2-1)]
+reply3_cos<-cos[(2+ln1+ln2):(2+ln1+ln2+ln3-1)]
+
+result1<-cbind(replies1_raw, reply1_jacard, reply1_cos)
+result2<-cbind(replies2_raw, reply2_jacard, reply2_cos)
+result3<-cbind(replies3_raw, reply3_jacard, reply3_cos)
+
+# output result 
+write.table(result1, "/Users/pengli/Desktop/workplace/WebDataMining/Data/ts1989/result.reply1.txt", sep="\t", row.names= F, col.names = F, quote = F)
+write.table(result2, "/Users/pengli/Desktop/workplace/WebDataMining/Data/ts1989/result.reply2.txt", sep="\t", row.names= F, col.names = F, quote = F)
+write.table(result3, "/Users/pengli/Desktop/workplace/WebDataMining/Data/ts1989/result.reply3.txt", sep="\t", row.names= F, col.names = F, quote = F)
+
+freq_level1<-hist(reply1_cos, breaks = c(0.000, 0.00000001, 0.02, 0.050, 0.1, 0.4, 1))
+freq_level2<-hist(reply2_cos, breaks = c(0.000, 0.00000001, 0.02, 0.050, 0.1, 0.4, 1))
+freq_level3<-hist(reply3_cos, breaks = c(0.000, 0.00000001, 0.02, 0.050, 0.1, 0.4, 1))
+
+freq<-rbind(freq_level1$counts, freq_level2$counts,freq_level3$counts)
+
+sum(freq[,1])/sum(freq)
+
+averaged_results<-c(mean(reply1_jacard), mean(reply1_cos))
+averaged_results<-rbind(averaged_results, c(mean(reply2_jacard), mean(reply2_cos)))
+averaged_results<-rbind(averaged_results,c(mean(reply3_jacard), mean(reply3_cos)))
+
+write.table(averaged_results, "/Users/pengli/Desktop/workplace/WebDataMining/Data/ts1989/mean.txt", sep="\t", row.names= c("level1", "level2", "level3"), col.names = c("Jaccard", "Cosine"), quote = F);
+
+h1<-density(reply1_cos)
+h2<-density(reply2_cos)
+h3<-density(reply3_cos)
+## calculate the range of the graph
+xlim <- range(0,h3$x,h1$x)
+ylim <- range(0,h3$y, h2$y)
+#pick the colours
+h1Col <- rgb(1,0,0,0.1)
+h2Col <- rgb(0,1,0,0.1)
+h3Col <- rgb(0,0,1,0.1)
+## plot the carrots and set up most of the plot parameters
+plot(h1, xlim = xlim, ylim = ylim, xlab = 'Cosine Similarity',
+     main = 'Distribution of Similarities: Pop Music', 
+     panel.first = grid())
+#put our density plots in
+polygon(h1, density = -1, col = h1Col)
+polygon(h2, density = -1, col = h2Col)
+polygon(h3, density = -1, col = h3Col)
+## add a legend in the corner
+legend('topright',c('Level 1','Level 2', 'Level 3'),
+       fill = c(h1Col, h2Col, h3Col), bty = 'n',
+       border = NA)
+# plot density for mjaccard
+j1<-density(reply1_jacard)
+j2<-density(reply2_jacard)
+j3<-density(reply3_jacard)
+
+xlim<-range(0, j1$x, j2$x, j3$x)
+ylim<-range(0, j1$y, j2$y, j3$y)
+
+Col1 <- rgb(1,0,0,0.1)
+Col2 <- rgb(0,1,0,0.1)
+Col3 <- rgb(0,0,1,0.1)
+
+plot(j1, xlim = c(0, 1), ylim = ylim, xlab = 'Modiefied Jaccard Similarity',
+     main = 'Distribution of Similarities: Sports', 
+     panel.first = grid())
+#put our density plots in
+polygon(j1, density = -1, col = Col1)
+polygon(j2, density = -1, col = Col2)
+polygon(j3, density = -1, col = Col3)
+
+## add a legend in the corner
+legend('topright',c('Level 1','Level 2', 'Level 3'),
+       fill = c(Col1, Col2, Col3), bty = 'n',
+       border = NA)
+
+freq1j<-hist(reply1_jacard, breaks = c(0.000, 0.00000001, 0.1, 0.3, 0.50, 0.7, 1))
+freq2j<-hist(reply2_jacard, breaks = c(0.000, 0.00000001, 0.1, 0.3, 0.50, 0.7, 1))
+freq3j<-hist(reply3_jacard, breaks = c(0.000, 0.00000001, 0.1, 0.3, 0.50, 0.7, 1))
+freqMJ<-NULL
+freqMJ<-rbind(freq1j$counts, freq2j$counts,freq3j$counts)
+

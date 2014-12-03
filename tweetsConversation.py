@@ -25,11 +25,26 @@ api = tweepy.API(auth, wait_on_rate_limit=True)
 
 def cleanTweet(x):
     # convert to ascii
-    x = x.encode('ascii', 'xmlcharrefreplace')
+    x = x.encode('utf8')
     # remove url, punctuation, \t, \n
-    x = ' '.join(re.sub("([^0-9A-Za-z \t])|(\w+:\/\/\S+)|[\n \t]"," ",x).split())
+    x = ' '.join(re.sub("((@[A-Za-z0-9]+)|[^0-9A-Za-z \t])|(\w+:\/\/\S+)|[\n \t]"," ",x).split())
     #x = re.sub(r'(\w+:\/\/\S+)|(\n)|(\s)|[{}]', ' ', x)
-    return x
+    try:
+        # Wide UCS-4 build
+        myre = re.compile(u'['
+            u'\U0001F300-\U0001F64F'
+            u'\U0001F680-\U0001F6FF'
+            u'\u2600-\u26FF\u2700-\u27BF]+', 
+            re.UNICODE)
+    except re.error:
+        # Narrow UCS-2 build
+        myre = re.compile(u'('
+            u'\ud83c[\udf00-\udfff]|'
+            u'\ud83d[\udc00-\ude4f\ude80-\udeff]|'
+            u'[\u2600-\u26FF\u2700-\u27BF])+', 
+            re.UNICODE)
+
+    return myre.sub(' ', x)
 
 # The recursive function to bulid a tree of tweets, root is the topic, and all the chidren are replies. 
 def get_Tree(id): 
@@ -52,8 +67,8 @@ def get_Tree(id):
             del reply
                             
 
-tweet_id = int(sys.argv[1])
-#tweet_id = 526572433948819456
+#tweet_id = int(sys.argv[1])
+tweet_id = 526847512485715968
 myTweet = api.get_status(tweet_id)
 
 

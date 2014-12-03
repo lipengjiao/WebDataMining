@@ -59,14 +59,13 @@ def getTreeBFS(root_id):
         for reply in tweepy.Cursor(api.search, q=parent_name, 
             count = 100, 
             since_id = parent_id, # specifying the since_id will speed up the searching speed.
-            include_entities= True).items():
-            if reply.in_reply_to_status_id == id:
+            include_entities= True,
+            lang="en").items():
+        
+            if reply.in_reply_to_status_id == parent_id:
                 name2 = '@' + reply.user.screen_name
                 print cleanTweet(reply.text)
                 q.append([reply.id, name2])
-                del reply
-            else:
-                del reply
                             
 
 #q_id = int(sys.argv[1])

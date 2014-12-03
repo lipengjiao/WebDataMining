@@ -51,8 +51,6 @@ api = tweepy.API(auth)
 
 query = sys.argv[1]
 size = int(sys.argv[2])
-flag_include_retweets = sys.argv[3]
-seen = set() 
 for tweet_json in tweepy.Cursor(api.search,                   
                        q=query,
                        count=100,
@@ -60,27 +58,12 @@ for tweet_json in tweepy.Cursor(api.search,
                        include_entities=True, # needed for id
                        lang="en").items(size):
 
-    if tweet_json.id not in seen: # check duplicates
-        seen.add(tweet_json.id) 
-        tweet_txt = tweet_json.text.encode('utf8')
-        tweet_txt = tweet_txt.replace('\t', ' ') # replace tab with space
-        tweet_txt = tweet_txt.replace('\n', ' ') # replace newline with space
-        tweet_txt = ' '.join(re.sub("(@[A-Za-z0-9]+)|(\w+:\/\/\S+)"," ",tweet_txt).split())
-        print tweet_txt
-
-        if flag_include_retweets == "Y":
-            retweets = api.retweets(tweet_json.id, count = 100) # get 100 retweets for each tweet
-        
-            if retweets is not None:
-            
-                for retweet in retweets: 
-                    retweet = retweet.text.encode('utf8')
-                    retweet = retweet.replace("\t", "\s") # replace tab with space
-                    retweet = retweet.replace("\n", "\s") # replace newline with space
-                    retweet = ' '.join(re.sub("(@[A-Za-z0-9]+)|(\w+:\/\/\S+)"," ",retweet).split())
-                    print retweet;   
-               
-            print
+    tweet_txt = tweet_json.text.encode('utf8')
+    tweet_txt = tweet_txt.replace('\t', ' ') # replace tab with space
+    tweet_txt = tweet_txt.replace('\n', ' ') # replace newline with space
+    tweet_txt = ' '.join(re.sub("(\w+:\/\/\S+)"," ",tweet_txt).split())
+    
+    print tweet_json.id+'\t'+tweet_json.user.screen_name+'\t'+'@' + tweet.user.screen_name +'\t'+tweet_txt
 
 
 
